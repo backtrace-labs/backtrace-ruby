@@ -1,5 +1,6 @@
 require 'json'
 require 'securerandom'
+require 'socket'
 require 'time'
 
 module Backtrace
@@ -60,6 +61,8 @@ class Report
 
         self.attributes = {}
         self.annotations = {}
+
+        add_default_attributes
     end
 
     def lang
@@ -116,6 +119,11 @@ class Report
         thread_name = name = t == Thread.main ? 'main' : t.object_id.to_s
 
         self.threads[thread_name][:stack] = Report.make_thread_callstack e
+    end
+
+    def add_default_attributes
+        self.attributes['application'] = $0
+        self.attributes['hostname'] = Socket.gethostname
     end
 end
 
