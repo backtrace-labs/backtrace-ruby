@@ -6,11 +6,13 @@ module Backtrace
 
 class SubmissionTarget
 
+    @@token = ''
+    @@url = ''
+
     def initialize(token, url)
         @token = token
         @url = url
     end
-
 
     def submit(processed)
         puts "Uploading to %s/%s" % [
@@ -19,6 +21,21 @@ class SubmissionTarget
         puts processed.to_json
     end
 
+    def self.token
+        @@token
+    end
+
+    def self.token=(token)
+        @@token = token
+    end
+
+    def self.url
+        @@url
+    end
+
+    def self.url=(url)
+        @@url = url
+    end
 end
 
 class Report
@@ -97,19 +114,19 @@ class Report
     end
 end
 
-class << self
-    attr_accessor :token
-    attr_accessor :url
-end
+def Backtrace.register_error_handler(token, url)
+    SubmissionTarget.token = token
+    SubmissionTarget.url = url
 
-end
-
-at_exit do
-    if $! and $!.class != SystemExit
-    # if $! and $!.class <= StandardError
-        report = Backtrace::Report.new
-        report.add_exception_data $!
-        st = Backtrace::SubmissionTarget.new Backtrace.token, Backtrace.url
-        st.submit report.to_hash
+    at_exit do
+        if $! and $!.class != SystemExit
+        # if $! and $!.class <= StandardError
+            report = Backtrace::Report.new
+            report.add_exception_data $!
+            st = SubmissionTarget.new SubmissionTarget.token, SubmissionTarget.url
+            st.submit report.to_hash
+        end
     end
+end
+
 end
