@@ -61,13 +61,15 @@ class Report
     attr_accessor :langVersion
     attr_accessor :agent
     attr_accessor :agentVersion
+    attr_accessor :sourceCode
 
     def initialize
         self.uuid = SecureRandom.uuid
         self.timestamp = Time.now.to_i
+        self.sourceCode = {}
 
         self.threads = Thread.list.map do |t|
-            processed = Report.process_thread t
+            processed = process_thread t
             [processed[:name], processed]
         end.to_h
 
@@ -87,7 +89,7 @@ class Report
     def to_hash
         fields = [
             :uuid, :timestamp, :lang, :langVersion, :agent, :agentVersion,
-            :mainThread, :threads, :attributes, :annotations
+            :mainThread, :threads, :attributes, :annotations, :sourceCode
         ]
         fields.map{ |sym| [sym, self.send(sym)] }.to_h
     end
@@ -96,24 +98,49 @@ class Report
         self.to_hash.to_json
     end
 
-    def Report.make_thread_callstack(t)
+    def get_source_code_for_location(bl)
+        lines = File.read(bl.path).each_line.to_a
+        min = [bl.lineno-20, 0].max
+        max = [bl.lineno+20, lines.size].min
+        text = lines[min..max].join
+
+        if lines.all?{ |l| l =~ /^\s*$/ }
+            p text
+            return nil
+        end
+
+        self.sourceCode[bl.object_id] = {
+            text: text,
+            startLine: min,
+            startColumn: 1,
+            startPos: 0,
+            path: bl.path,
+        }
+
+        bl.object_id
+    end
+
+    def make_thread_callstack(t)
         t.backtrace_locations.map do |bl|
-            {
+            data = {
                 funcName: bl.base_label,
                 line: bl.lineno.to_s,
                 library: bl.path,
             }
+            source = get_source_code_for_location bl
+            data[:sourceCode] = source if source
+            data
         end
     end
 
-    def Report.process_thread(t)
+    def process_thread(t)
         name = t == Thread.main ? 'main' : t.object_id.to_s
         fault = Thread.current == t or t.status == nil
 
         {
             name: name,
             fault: fault,
-            stack: Report.make_thread_callstack(t),
+            stack: make_thread_callstack(t),
         }
     end
 
@@ -121,7 +148,7 @@ class Report
         t = Thread.current
         thread_name = name = t == Thread.main ? 'main' : t.object_id.to_s
 
-        self.threads[thread_name][:stack] = Report.make_thread_callstack e
+        self.threads[thread_name][:stack] = make_thread_callstack e
     end
 
     def add_default_attributes
@@ -137,8 +164,9 @@ def Backtrace.register_error_handler(token, url)
     at_exit do
         if $! and $!.class != SystemExit
         # if $! and $!.class <= StandardError
+            ex = $!
             report = Backtrace::Report.new
-            report.add_exception_data $!
+            report.add_exception_data ex
             st = SubmissionTarget.new SubmissionTarget.token, SubmissionTarget.url
             st.submit report.to_hash
         end
