@@ -4,7 +4,7 @@ require 'time'
 
 module Backtrace
 
-class Uploader
+class SubmissionTarget
 
     def initialize(token, url)
         @token = token
@@ -12,7 +12,7 @@ class Uploader
     end
 
 
-    def upload_error(processed)
+    def submit(processed)
         puts "Uploading to %s/%s" % [
             @url, @token
         ]
@@ -109,7 +109,7 @@ at_exit do
     # if $! and $!.class <= StandardError
         report = Backtrace::Report.new
         report.add_exception_data $!
-        up = Backtrace::Uploader.new Backtrace.token, Backtrace.url
-        up.upload_error report.to_hash
+        st = Backtrace::SubmissionTarget.new Backtrace.token, Backtrace.url
+        st.submit report.to_hash
     end
 end
