@@ -47,6 +47,10 @@ class Report
     attr_accessor :mainThread
     attr_accessor :attributes
     attr_accessor :annotations
+    attr_accessor :lang
+    attr_accessor :langVersion
+    attr_accessor :agent
+    attr_accessor :agentVersion
 
     def initialize
         self.uuid = SecureRandom.hex(16)
@@ -63,24 +67,13 @@ class Report
         self.annotations = {}
 
         add_default_attributes
-    end
 
-    def lang
-        'ruby'
+        self.lang = 'ruby'
+        self.langVersion = RUBY_VERSION
+        self.agent = 'backtrace-ruby'
+        self.agentVersion = '0.1.0'
     end
-
-    def langVersion
-        RUBY_VERSION
-    end
-
-    def agent
-        'backtrace-ruby'
-    end
-
-    def agentVersion
-        '0.1.0'
-    end
-
+    
     def to_hash
         fields = [
             :uuid, :timestamp, :lang, :langVersion, :agent, :agentVersion,
