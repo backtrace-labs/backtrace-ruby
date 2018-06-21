@@ -44,6 +44,8 @@ class Report
     attr_accessor :timestamp
     attr_accessor :threads
     attr_accessor :mainThread
+    attr_accessor :attributes
+    attr_accessor :annotations
 
     def initialize
         self.uuid = SecureRandom.hex(16)
@@ -55,6 +57,9 @@ class Report
         end.to_h
 
         self.mainThread = "main"
+
+        self.attributes = {}
+        self.annotations = {}
     end
 
     def lang
@@ -76,7 +81,7 @@ class Report
     def to_hash
         fields = [
             :uuid, :timestamp, :lang, :langVersion, :agent, :agentVersion,
-            :mainThread, :threads,
+            :mainThread, :threads, :attributes, :annotations
         ]
         fields.map{ |sym| [sym, self.send(sym)] }.to_h
     end
