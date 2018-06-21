@@ -21,6 +21,7 @@ class SubmissionTarget
     def submit(processed, ignoreSSL=false)
       uri = URI.parse(@url)
       uri.query = "format=json&token=" + @token
+      uri.path = "/api/post"
       req = Net::HTTP::Post.new(uri.request_uri, "Content-Type"=>"application/json")
       req.body = processed.to_json
       http = Net::HTTP.new(uri.host, uri.port)
