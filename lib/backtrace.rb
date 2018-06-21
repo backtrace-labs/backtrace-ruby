@@ -62,7 +62,7 @@ class Report
     attr_accessor :agentVersion
 
     def initialize
-        self.uuid = SecureRandom.hex(16)
+        self.uuid = SecureRandom.uuid
         self.timestamp = Time.now.to_i
 
         self.threads = Thread.list.map do |t|
