@@ -2,6 +2,9 @@ require 'json'
 require 'securerandom'
 require 'socket'
 require 'time'
+require 'uri'
+require 'net/http'
+require 'net/https'
 
 module Backtrace
 
@@ -15,11 +18,17 @@ class SubmissionTarget
         @url = url
     end
 
-    def submit(processed)
-        puts "Uploading to %s/%s" % [
-            @url, @token
-        ]
-        puts processed.to_json
+    def submit(processed, ignoreSSL=false)
+      uri = URI.parse(@url)
+      uri.query = "format=json&token=" + @token
+      req = Net::HTTP::Post.new(uri.request_uri, "Content-Type"=>"application/json")
+      req.body = processed.to_json
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == "https"
+      if ignoreSSL
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      http.request(req)
     end
 
     def self.token
@@ -73,7 +82,7 @@ class Report
         self.agent = 'backtrace-ruby'
         self.agentVersion = '0.1.0'
     end
-    
+
     def to_hash
         fields = [
             :uuid, :timestamp, :lang, :langVersion, :agent, :agentVersion,
@@ -99,7 +108,7 @@ class Report
     def Report.process_thread(t)
         name = t == Thread.main ? 'main' : t.object_id.to_s
         fault = Thread.current == t or t.status == nil
-    
+
         {
             name: name,
             fault: fault,
