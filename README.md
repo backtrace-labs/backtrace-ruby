@@ -1,0 +1,2 @@
+# Backtrace error submission gem
+
