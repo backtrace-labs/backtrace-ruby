@@ -111,7 +111,7 @@ class Report
 
         self.sourceCode[bl.object_id] = {
             text: text,
-            startLine: min,
+            startLine: min+1,
             startColumn: 1,
             startPos: 0,
             path: bl.path,
@@ -163,7 +163,6 @@ def Backtrace.register_error_handler(token, url)
 
     at_exit do
         if $! and $!.class != SystemExit
-        # if $! and $!.class <= StandardError
             ex = $!
             report = Backtrace::Report.new
             report.add_exception_data ex
