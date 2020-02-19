@@ -2,15 +2,15 @@
 
 # Installation
 
-Add `gem 'backtrace'` to your Gemfile. Alternatively, install it yourself:
+Add `gem 'backtraceio'` to your Gemfile. Alternatively, install it yourself:
 ```
-gem install backtrace
+gem install backtraceio
 ```
 
 # Usage
 
 ```ruby
-require 'backtrace'
+require 'backtraceio'
 ```
 
 ## Global crash handler
@@ -19,7 +19,7 @@ Pass your custom token and upload url from your Backtrace
 account.
 
 ```ruby
-Backtrace.register_error_handler(TOKEN, URL)
+BacktraceIO.register_error_handler(TOKEN, URL)
 ```
 
 ## Reporting custom errors
@@ -27,7 +27,7 @@ Backtrace.register_error_handler(TOKEN, URL)
 Create a new `Report` object.
 
 ```ruby
-report = Backtrace::Report
+report = BacktraceIO::Report
 ```
 
 (Optional) Add custom attributes/annotations/exception objects:
@@ -46,7 +46,7 @@ Submit the crash. Pass your custom token and upload url from your Backtrace
 account.
 
 ```ruby
-st = Backtrace::SubmissionTarget.new TOKEN, URL
+st = BacktraceIO::SubmissionTarget.new TOKEN, URL
 st.submit report.to_hash
 ```
 

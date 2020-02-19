@@ -6,7 +6,7 @@ require 'uri'
 require 'net/http'
 require 'net/https'
 
-module Backtrace
+module BacktraceIO
 
 class SubmissionTarget
 
@@ -157,14 +157,14 @@ class Report
     end
 end
 
-def Backtrace.register_error_handler(token, url)
+def BacktraceIO.register_error_handler(token, url)
     SubmissionTarget.token = token
     SubmissionTarget.url = url
 
     at_exit do
         if $! and $!.class != SystemExit
             ex = $!
-            report = Backtrace::Report.new
+            report = BacktraceIO::Report.new
             report.add_exception_data ex
             st = SubmissionTarget.new SubmissionTarget.token, SubmissionTarget.url
             st.submit report.to_hash
